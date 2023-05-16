@@ -1,0 +1,9 @@
+---
+
+packets: 30
+g_host: graphitehost
+g_port: 2003
+g_prefix: ping
+fping: /usr/bin/fping
+logfile: /tmp/graphping.log
+

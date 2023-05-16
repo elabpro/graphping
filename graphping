@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/bin/env python2.7
 #
 #   Copyright 2013 Martijn Grendelman <m@rtijn.net>
 #
@@ -32,18 +32,21 @@ import errno
 import time
 import socket
 import datetime
+import yaml
 from pprint import pprint, pformat
+
+configFilename = "config.yml"
 
 # number of ping packets to send
 packets = 30
 
 # Graphite
-g_host = 'localhost'
+g_host = 'gen10'
 g_port = 2003
 g_prefix = 'ping'
 
+fping = '/usr/bin/fping'
 # System
-fping = '/usr/sbin/fping'
 logfile = '/tmp/graphping.log'
 
 def handle_signal (sig, _frame):
@@ -84,7 +87,7 @@ class App:
         self.g_port = g_port
         self.g_prefix = g_prefix
         self.logfile = logfile
-        self.daemonize = True
+        self.daemonize = False
         self.stop = False
         self.level = logging.INFO
 
@@ -96,7 +99,7 @@ class App:
         try:
             loghandler = logging.handlers.WatchedFileHandler(self.logfile)
         except IOError:
-            print "Could not open logfile (%s)" % self.logfile
+            print("Could not open logfile (%s)" % self.logfile)
             return False
 
         loghandler.setFormatter(formatter)
@@ -129,7 +132,7 @@ class App:
             self.usage()
 
     def usage(self):
-        print "Usage: ping-graphite <target> [<target> ...]"
+        print("Usage: ping-graphite <target> [<target> ...]")
         sys.exit(2)
 
     def main(self):
@@ -228,6 +231,18 @@ class App:
             return
 
 if __name__ == "__main__":
+
+#    if "-c" in sys.argv:
+#        configFilename = sys.argv[sys.argv.index("-c") + 1]
+
+    with open(configFilename, 'r') as ymlfile:
+        cfg = yaml.safe_load(ymlfile)
+        g_host = cfg['g_host']
+        g_port = cfg['g_port']
+        g_prefix = cfg['g_prefix']
+
+        fping = cfg['fping']
+        logfile = cfg['logfile']
 
     app = App()
     app.process_options()
